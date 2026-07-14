@@ -1,0 +1,117 @@
+# PlastiFlow — order tracker
+
+A Next.js + Supabase app for tracking plastic moulding orders: dashboard, all orders, add order (with photo upload), and remaining orders with progress. Google sign-in required.
+
+## What you need before starting
+
+- VS Code (you have this)
+- Node.js (you have this)
+- A free Supabase account
+- A free Google Cloud account (only to enable "Sign in with Google" — takes 5 minutes)
+
+---
+
+## Part 1 — Create your Supabase project
+
+1. Go to https://supabase.com and sign up / log in.
+2. Click **New project**.
+3. Pick an organization, name the project `plastiflow` (or anything), set a database password (save it somewhere), pick a region close to you, click **Create new project**. Wait ~2 minutes for it to spin up.
+4. Once it's ready, go to **Project Settings** (gear icon, bottom left) → **API**.
+5. Copy two values, you'll need them soon:
+   - **Project URL** (looks like `https://xxxxx.supabase.co`)
+   - **anon public** key (a long string under "Project API keys")
+
+## Part 2 — Create the database table
+
+1. In the Supabase dashboard, click **SQL Editor** in the left sidebar.
+2. Click **New query**.
+3. Open the file `supabase-setup.sql` (included in this project folder), copy all of it, and paste it into the SQL editor.
+4. Click **Run** (bottom right). You should see "Success. No rows returned."
+
+This creates:
+- An `orders` table with all your order fields
+- Row-level security so only signed-in users can read/write orders
+- A public storage bucket called `order-photos` for item images
+
+## Part 3 — Enable Google sign-in
+
+1. In Supabase, go to **Authentication** → **Providers** in the left sidebar.
+2. Find **Google** in the list and click it to expand.
+3. Toggle **Enable sign in with Google** on.
+4. You now need a Google Client ID and Secret. Keep this tab open and open a new tab:
+   - Go to https://console.cloud.google.com/apis/credentials
+   - Create a new project (top left dropdown → New Project) if you don't have one, name it `PlastiFlow`.
+   - Click **Create Credentials** → **OAuth client ID**.
+   - If prompted, configure the **OAuth consent screen** first: choose **External**, fill in app name (`PlastiFlow`), your email for support and developer contact, save through the steps (you can skip scopes/test users, just click through).
+   - Back on **Create OAuth client ID**: Application type = **Web application**. Name it anything.
+   - Under **Authorized redirect URIs**, add the callback URL shown in your Supabase Google provider settings (it looks like `https://xxxxx.supabase.co/auth/v1/callback`) — copy it exactly from Supabase.
+   - Click **Create**. Copy the **Client ID** and **Client Secret** shown.
+5. Back in Supabase's Google provider settings, paste the **Client ID** and **Client Secret**, then click **Save**.
+
+## Part 4 — Set up the project in VS Code
+
+1. Unzip the project folder you downloaded and open it in VS Code (`File` → `Open Folder`).
+2. Open the built-in terminal (`` Ctrl+` `` or `View` → `Terminal`).
+3. Install dependencies:
+   ```
+   npm install
+   ```
+4. Create your local environment file: duplicate `.env.local.example` and rename the copy to `.env.local`. In VS Code you can right-click `.env.local.example` → Copy, then paste and rename.
+5. Open `.env.local` and fill in the two values from Part 1, step 5:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
+6. Save the file.
+
+## Part 5 — Run it
+
+In the VS Code terminal:
+```
+npm run dev
+```
+
+Open your browser to **http://localhost:3000**. You should land on the login page — click **Continue with Google** to sign in, and you'll be dropped onto the dashboard.
+
+Try adding an order from **Add Order**, then check **All Orders** and **Remaining** to see it reflected.
+
+---
+
+## Project structure (for reference)
+
+```
+app/
+  dashboard/       Dashboard page (stats, urgent orders, recent orders)
+  orders/          All Orders page (search, filter, edit, delete)
+  orders/new/      Add Order form
+  orders/[id]/edit/  Edit Order form
+  remaining/       Remaining Orders with progress bars
+  login/           Google sign-in page
+  auth/callback/   OAuth redirect handler
+components/
+  Sidebar.js       Left navigation
+  AppShell.js       Wraps pages with the sidebar
+  OrderForm.js      Shared form used by Add and Edit
+  OrdersList.js      All Orders list with client-side search/filter
+lib/
+  supabase-browser.js   Supabase client for the browser
+  supabase-server.js     Supabase client for server components
+  orders.js               Shared helpers (status colors, date math)
+middleware.js       Redirects signed-out users to /login
+supabase-setup.sql  Run this once in Supabase's SQL editor
+```
+
+## Deploying so your team can use it (later)
+
+The easiest option is **Vercel** (made by the creators of Next.js, free tier is enough):
+1. Push this project to a GitHub repo.
+2. Go to https://vercel.com, sign up, click **Add New Project**, import your repo.
+3. Add the same two environment variables from `.env.local` in Vercel's project settings.
+4. Deploy. You'll get a live URL to share with your team.
+
+One extra step for Google login to work on the live URL: go back to Google Cloud Console → your OAuth client → add your Vercel URL's Supabase callback as an authorized redirect URI (same one as before — it doesn't change per-domain since Supabase handles the callback).
+
+## Notes
+
+- All signed-in users currently share the same order list (good for a small team seeing the same orders). If you later want each user to only see their own orders, there's a commented-out alternate policy at the bottom of `supabase-setup.sql`.
+- Photos are stored in Supabase Storage's `order-photos` bucket and are publicly viewable via URL (not publicly listed/browsable, but anyone with a direct photo link could view it). That's normal for this kind of app.
