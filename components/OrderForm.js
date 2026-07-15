@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { STATUSES } from '@/lib/orders';
+import VoiceOrderFill from './VoiceOrderFill';
+import ImageLightbox from './ImageLightbox';
 
-export default function OrderForm({ initial }) {
+export default function OrderForm({ initial, materials = [] }) {
   const router = useRouter();
   const isEdit = !!initial;
 
@@ -20,12 +22,35 @@ export default function OrderForm({ initial }) {
     price: initial?.price || '',
     notes: initial?.notes || '',
     photo_url: initial?.photo_url || null,
+    material_id: initial?.material_id || '',
+    material_grams_per_unit: initial?.material_grams_per_unit || '',
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const handleVoiceFilled = (fields) => {
+    setForm((f) => {
+      const next = { ...f };
+      if (fields.customer_name) next.customer_name = fields.customer_name;
+      if (fields.item_name) next.item_name = fields.item_name;
+      if (fields.description) next.description = fields.description;
+      if (fields.quantity) next.quantity = fields.quantity;
+      if (fields.due_date) next.due_date = fields.due_date;
+      if (fields.days_to_complete) next.days_to_complete = fields.days_to_complete;
+      if (fields.price) next.price = fields.price;
+      if (fields.notes) next.notes = fields.notes;
+      if (fields.material_grams_per_unit) next.material_grams_per_unit = fields.material_grams_per_unit;
+      if (fields.material_name) {
+        const match = materials.find((m) => m.name.toLowerCase() === fields.material_name.toLowerCase());
+        if (match) next.material_id = match.id;
+      }
+      return next;
+    });
+  };
 
   const handlePhoto = (e) => {
     const file = e.target.files[0];
@@ -78,6 +103,8 @@ export default function OrderForm({ initial }) {
         price: form.price ? Number(form.price) : null,
         notes: form.notes.trim(),
         photo_url: photoUrl,
+        material_id: form.material_id || null,
+        material_grams_per_unit: form.material_grams_per_unit ? Number(form.material_grams_per_unit) : null,
       };
 
       if (isEdit) {
@@ -97,6 +124,8 @@ export default function OrderForm({ initial }) {
   };
 
   return (
+    <>
+    <VoiceOrderFill onFilled={handleVoiceFilled} materialNames={materials.map((m) => m.name)} />
     <form className="form-card" onSubmit={submit}>
       <div className="form-section-title">Order Information</div>
       <div className="form-grid">
@@ -139,6 +168,20 @@ export default function OrderForm({ initial }) {
           <input className="input" type="number" min="0" value={form.price} onChange={(e) => set('price', e.target.value)} placeholder="₹ amount" />
         </div>
 
+        <div className="form-field">
+          <label className="form-label">Material used</label>
+          <select className="input" value={form.material_id} onChange={(e) => set('material_id', e.target.value)}>
+            <option value="">None selected</option>
+            {materials.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}{m.color ? ` — ${m.color}` : ''}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Grams per unit</label>
+          <input className="input" type="number" min="0" step="0.1" value={form.material_grams_per_unit} onChange={(e) => set('material_grams_per_unit', e.target.value)} placeholder="e.g., 15" />
+        </div>
+
         <div className="form-field full">
           <label className="form-label">Notes</label>
           <textarea className="input" style={{ minHeight: 60, resize: 'vertical' }} value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Any additional notes about this order..." />
@@ -148,7 +191,7 @@ export default function OrderForm({ initial }) {
           <label className="form-label">Item Image</label>
           {form.photo_url ? (
             <div className="upload-preview">
-              <img src={form.photo_url} alt="Item" />
+              <img src={form.photo_url} alt="Item" onClick={() => setLightboxOpen(true)} />
               <button type="button" className="upload-remove" onClick={() => { set('photo_url', null); setPhotoFile(null); }}>✕</button>
             </div>
           ) : (
@@ -173,5 +216,7 @@ export default function OrderForm({ initial }) {
         <button type="button" className="btn btn-secondary" onClick={() => router.push('/orders')}>Cancel</button>
       </div>
     </form>
+    <ImageLightbox src={lightboxOpen ? form.photo_url : null} alt="Item photo" onClose={() => setLightboxOpen(false)} />
+    </>
   );
 }
