@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { STATUSES, statusBadgeClass, daysLeftLabel, formatDate, initials } from '@/lib/orders';
+import ImageLightbox from './ImageLightbox';
 
 export default function OrdersList({ initialOrders }) {
   const [orders, setOrders] = useState(initialOrders);
@@ -12,6 +13,7 @@ export default function OrdersList({ initialOrders }) {
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [sortBy, setSortBy] = useState('By Deadline');
   const [error, setError] = useState('');
+  const [lightboxSrc, setLightboxSrc] = useState(null);
   const router = useRouter();
 
   const filtered = useMemo(() => {
@@ -93,7 +95,11 @@ export default function OrdersList({ initialOrders }) {
         <div className="orders-list">
           {filtered.map((o) => (
             <div key={o.id} className="order-card">
-              <div className="order-avatar">
+              <div
+                className="order-avatar"
+                onClick={() => o.photo_url && setLightboxSrc(o.photo_url)}
+                style={{ cursor: o.photo_url ? 'zoom-in' : 'default' }}
+              >
                 {o.photo_url ? <img src={o.photo_url} alt={o.item_name} /> : initials(o.item_name)}
               </div>
               <div className="order-card-info">
@@ -117,6 +123,8 @@ export default function OrdersList({ initialOrders }) {
           ))}
         </div>
       )}
+
+      <ImageLightbox src={lightboxSrc} alt="Order item" onClose={() => setLightboxSrc(null)} />
     </>
   );
 }
