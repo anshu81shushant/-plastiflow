@@ -183,10 +183,18 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 }
 
 .topbar-signout {
-  background: none;
+  background: rgba(255,255,255,0.08);
   border: none;
-  color: #A7ACB3;
-  padding: 6px;
+  color: #D6D9DD;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-signout:active {
+  background: rgba(255,255,255,0.16);
 }
 
 /* Mobile bottom tab bar */
@@ -753,6 +761,10 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 /* ============ RESPONSIVE ============ */
 
 @media (max-width: 860px) {
+  .app-shell {
+    display: block;
+  }
+
   .sidebar { display: none; }
 
   .topbar { display: flex; }
@@ -760,9 +772,15 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 
   .main {
     padding: 18px 16px calc(var(--tabbar-h) + 24px);
+    width: 100%;
   }
 
   .form-grid { grid-template-columns: 1fr; }
+  .form-card { max-width: 100%; padding: 18px 16px; }
+  .form-section-title { font-size: 14px; }
+
+  .section-card { padding: 16px; }
+  .stat-card { padding: 15px 14px; }
 
   .page-title { font-size: 21px; }
 
