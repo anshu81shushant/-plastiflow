@@ -7,9 +7,17 @@ import { STATUSES } from '@/lib/orders';
 import VoiceOrderFill from './VoiceOrderFill';
 import ImageLightbox from './ImageLightbox';
 
-export default function OrderForm({ initial, materials = [] }) {
+export default function OrderForm({ initial, materials: initialMaterials = [] }) {
   const router = useRouter();
   const isEdit = !!initial;
+
+  const [materials, setMaterials] = useState(initialMaterials);
+  const [addingMaterial, setAddingMaterial] = useState(false);
+  const [newMaterialName, setNewMaterialName] = useState('');
+  const [newMaterialColor, setNewMaterialColor] = useState('');
+  const [newMaterialStock, setNewMaterialStock] = useState('');
+  const [materialError, setMaterialError] = useState('');
+  const [savingMaterial, setSavingMaterial] = useState(false);
 
   const [form, setForm] = useState({
     customer_name: initial?.customer_name || '',
@@ -50,6 +58,39 @@ export default function OrderForm({ initial, materials = [] }) {
       }
       return next;
     });
+  };
+
+  const createMaterial = async () => {
+    if (!newMaterialName.trim()) { setMaterialError('Enter a material name.'); return; }
+
+    setSavingMaterial(true);
+    setMaterialError('');
+    const supabase = createClient();
+
+    try {
+      const { data, error: insertError } = await supabase
+        .from('raw_materials')
+        .insert({
+          name: newMaterialName.trim(),
+          color: newMaterialColor.trim(),
+          stock_kg: newMaterialStock ? Number(newMaterialStock) : 0,
+          reorder_threshold_kg: 20,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setMaterials((prev) => [...prev, data]);
+      set('material_id', data.id);
+      setAddingMaterial(false);
+      setNewMaterialName('');
+      setNewMaterialColor('');
+      setNewMaterialStock('');
+    } catch (err) {
+      setMaterialError('Could not save material. Try again.');
+    }
+    setSavingMaterial(false);
   };
 
   const handlePhoto = (e) => {
@@ -168,18 +209,84 @@ export default function OrderForm({ initial, materials = [] }) {
           <input className="input" type="number" min="0" value={form.price} onChange={(e) => set('price', e.target.value)} placeholder="₹ amount" />
         </div>
 
-        <div className="form-field">
+        <div className="form-field full">
           <label className="form-label">Material used</label>
-          <select className="input" value={form.material_id} onChange={(e) => set('material_id', e.target.value)}>
-            <option value="">None selected</option>
-            {materials.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}{m.color ? ` — ${m.color}` : ''}</option>
-            ))}
-          </select>
-        </div>
-        <div className="form-field">
-          <label className="form-label">Grams per unit</label>
-          <input className="input" type="number" min="0" step="0.1" value={form.material_grams_per_unit} onChange={(e) => set('material_grams_per_unit', e.target.value)} placeholder="e.g., 15" />
+          {!addingMaterial ? (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <select
+                className="input"
+                style={{ flex: 1, minWidth: 180 }}
+                value={form.material_id}
+                onChange={(e) => {
+                  if (e.target.value === '__add_new__') {
+                    setAddingMaterial(true);
+                  } else {
+                    set('material_id', e.target.value);
+                  }
+                }}
+              >
+                <option value="">None selected</option>
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}{m.color ? ` — ${m.color}` : ''}</option>
+                ))}
+                <option value="__add_new__">+ Add new material...</option>
+              </select>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.1"
+                value={form.material_grams_per_unit}
+                onChange={(e) => set('material_grams_per_unit', e.target.value)}
+                placeholder="Grams per unit"
+                style={{ width: 160 }}
+              />
+            </div>
+          ) : (
+            <div style={{ background: 'var(--gray-bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 14 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+                <input
+                  className="input"
+                  placeholder="Material name (e.g., HDPE Granules)"
+                  value={newMaterialName}
+                  onChange={(e) => setNewMaterialName(e.target.value)}
+                  style={{ flex: 1, minWidth: 160 }}
+                  autoFocus
+                />
+                <input
+                  className="input"
+                  placeholder="Color/grade (optional)"
+                  value={newMaterialColor}
+                  onChange={(e) => setNewMaterialColor(e.target.value)}
+                  style={{ width: 160 }}
+                />
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  placeholder="Starting stock (kg)"
+                  value={newMaterialStock}
+                  onChange={(e) => setNewMaterialStock(e.target.value)}
+                  style={{ width: 160 }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className="btn btn-primary" style={{ padding: '8px 14px' }} onClick={createMaterial} disabled={savingMaterial}>
+                  {savingMaterial ? 'Saving...' : 'Save material'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 14px' }}
+                  onClick={() => { setAddingMaterial(false); setMaterialError(''); setNewMaterialName(''); setNewMaterialColor(''); setNewMaterialStock(''); }}
+                >
+                  Cancel
+                </button>
+              </div>
+              {materialError && <div style={{ color: 'var(--red-text)', fontSize: 13, marginTop: 8 }}>{materialError}</div>}
+            </div>
+          )}
         </div>
 
         <div className="form-field full">

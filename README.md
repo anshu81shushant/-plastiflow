@@ -57,7 +57,7 @@ This creates:
    npm install
    ```
 4. Create your local environment file: duplicate `.env.local.example` and rename the copy to `.env.local`. In VS Code you can right-click `.env.local.example` → Copy, then paste and rename.
-5. Open `.env.local` and fill in the two values from Part 1, step 5:
+5. Open `.env.local` and fill in the values from Part 1, step 5:
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
@@ -115,3 +115,20 @@ One extra step for Google login to work on the live URL: go back to Google Cloud
 
 - All signed-in users currently share the same order list (good for a small team seeing the same orders). If you later want each user to only see their own orders, there's a commented-out alternate policy at the bottom of `supabase-setup.sql`.
 - Photos are stored in Supabase Storage's `order-photos` bucket and are publicly viewable via URL (not publicly listed/browsable, but anyone with a direct photo link could view it). That's normal for this kind of app.
+- **Voice-fill (free, no API cost)**: click "Fill by voice" on the Add/Edit Order form and speak in a structured order, using cue words: "customer Rajesh Traders, item plastic hanger, quantity 5000, due date 20 July, material HDPE, grams 15, price 50000, notes handle with care" — then tap Stop. It's all parsed locally in the browser, no external service, no per-use cost. Because it's free rule-based matching rather than AI, it needs cue words said in that structure — loose conversational phrasing won't parse as reliably. Always review the filled fields before saving. Works in Chrome and Edge; Safari's speech support is limited.
+- **Click any item photo** (in Add/Edit Order preview or in the All Orders list) to view it full-screen. Press Escape or click outside to close.
+- **Raw materials & reorder alerts**: run `supabase-migration-2-materials.sql` in Supabase's SQL editor (after the main `supabase-setup.sql`) to enable the Materials page, stock tracking, and reorder warnings.
+- **Daily production logging**: run `supabase-migration-3-production.sql` in Supabase's SQL editor (after the other two migrations) to enable production tracking. On each order's Edit page, log units produced each day — it shows a completion dial, and if the order has a material + grams-per-unit set, it automatically deducts that material's stock. Deletions don't restore deducted stock automatically, so double-check before removing an entry.
+- **Redesigned UI**: the whole app now uses a mobile-first industrial design — dark graphite navigation, safety-orange accent, a bottom tab bar on phones (sidebar returns on desktop). Run all three SQL migrations in order for every feature to work correctly.
+
+## Installing as a mobile app (PWA)
+
+PlastiFlow is a Progressive Web App — no app store needed, completely free.
+
+**On Android (Chrome):** open the live site, a small "Install PlastiFlow" banner appears at the bottom — tap **Install**. Or tap the ⋮ menu → **Add to Home screen**.
+
+**On iPhone (Safari):** open the live site, tap the Share icon (square with an arrow), scroll down and tap **Add to Home Screen**. iOS doesn't support the automatic install banner — this manual step is required by Apple, not something the app can prompt for.
+
+Once installed, it opens full-screen with its own icon, no browser bar — feels like a native app. It also caches recently visited pages, so orders you've already loaded stay viewable with a spotty connection.
+
+**Note:** this only works once the app is deployed to a live HTTPS URL (like your Vercel deployment) — it won't install from `localhost` during local development.

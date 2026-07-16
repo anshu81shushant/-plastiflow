@@ -3,6 +3,8 @@ import MaterialForm from '@/components/MaterialForm';
 import { createClient } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditMaterialPage({ params }) {
   const supabase = createClient();
   const { data: material } = await supabase.from('raw_materials').select('*').eq('id', params.id).single();

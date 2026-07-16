@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { parseVoiceTranscript } from '@/lib/voiceParser';
+import { parseVoiceTranscript } from '@/lib/VoiceParser';
 
 export default function VoiceOrderFill({ onFilled, materialNames = [] }) {
   const [listening, setListening] = useState(false);

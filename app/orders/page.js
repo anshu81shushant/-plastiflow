@@ -11,9 +11,21 @@ export default async function OrdersPage() {
     .select('*')
     .order('due_date', { ascending: true });
 
+  const { data: logs } = await supabase.from('production_logs').select('order_id, quantity');
+
+  const producedByOrder = {};
+  (logs || []).forEach((l) => {
+    producedByOrder[l.order_id] = (producedByOrder[l.order_id] || 0) + l.quantity;
+  });
+
+  const ordersWithProgress = (orders || []).map((o) => ({
+    ...o,
+    produced_qty: producedByOrder[o.id] || 0,
+  }));
+
   return (
     <AppShell>
-      <OrdersList initialOrders={orders || []} />
+      <OrdersList initialOrders={ordersWithProgress} />
     </AppShell>
   );
 }

@@ -110,6 +110,17 @@ export default function OrdersList({ initialOrders }) {
                 <div className="order-card-sub">
                   {o.customer_name} · Qty: {Number(o.quantity || 0).toLocaleString()} · Due: {formatDate(o.due_date)}
                 </div>
+                {o.status !== 'Completed' && o.quantity > 0 && (
+                  <div style={{ marginTop: 8, maxWidth: 220 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 3 }}>
+                      <span>Produced</span>
+                      <span>{(o.produced_qty || 0).toLocaleString()} / {Number(o.quantity).toLocaleString()}</span>
+                    </div>
+                    <div className="progress-track" style={{ height: 5 }}>
+                      <div className="progress-fill" style={{ width: `${Math.min(100, ((o.produced_qty || 0) / o.quantity) * 100)}%` }} />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="order-card-actions">
                 <span className="pill">{daysLeftLabel(o.due_date, o.status)}</span>

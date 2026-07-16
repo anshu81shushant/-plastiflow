@@ -1,6 +1,8 @@
 import AppShell from '@/components/AppShell';
 import MaterialForm from '@/components/MaterialForm';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewMaterialPage() {
   return (
     <AppShell>
