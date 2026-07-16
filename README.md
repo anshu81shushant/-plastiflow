@@ -124,7 +124,6 @@ One extra step for Google login to work on the live URL: go back to Google Cloud
   - Tap a machine to open its day view — one row per hour (00:00–24:00), where you enter units produced, rejects, downtime (minutes), operator, and notes. A live bar chart and stat strip (total, rejects, downtime, efficiency vs target) update as you fill it in. Use the date arrows or date picker to log a different day, or go back and fill in earlier hours.
   - Set each machine's **target capacity (units/hour)** when adding/editing it — that's what efficiency % is measured against.
   - **Production analysis** (`Machines → View analysis`): pick a date range (or use Today/7 days/30 days) to see total output, rejects, downtime, and average efficiency across all machines, a top-performer / needs-attention callout, a daily output trend, an output-by-machine comparison, an output-by-hour-of-day pattern (useful for spotting slow shifts/hours), and a full sortable breakdown table.
-  - The Dashboard also shows a compact "Machines — today" snapshot per machine.
 
 ## Installing as a mobile app (PWA)
 

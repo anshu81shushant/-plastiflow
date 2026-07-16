@@ -2,26 +2,15 @@ import Link from 'next/link';
 import AppShell from '@/components/AppShell';
 import { createClient } from '@/lib/supabase-server';
 import { statusBadgeClass, daysLeftLabel, initials } from '@/lib/orders';
-import { todayStr, totals as machineTotals, efficiencyPct, effColor } from '@/lib/machines';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const supabase = createClient();
-  const today = todayStr();
-  const [{ data: orders }, { data: machines }, { data: todayLogs }] = await Promise.all([
-    supabase.from('orders').select('*').order('due_date', { ascending: true }),
-    supabase.from('machines').select('*').order('code', { ascending: true }),
-    supabase.from('machine_hourly_logs').select('*').eq('log_date', today),
-  ]);
-
-  const machineList = machines || [];
-  const logsToday = todayLogs || [];
-  const machineRows = machineList.map((m) => {
-    const t = machineTotals(logsToday.filter((l) => l.machine_id === m.id));
-    return { machine: m, ...t, eff: efficiencyPct(t.quantity, t.hoursLogged, m.capacity_per_hour) };
-  });
-  const plantTotalToday = machineRows.reduce((s, r) => s + r.quantity, 0);
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('*')
+    .order('due_date', { ascending: true });
 
   const list = orders || [];
   const total = list.length;
@@ -103,31 +92,6 @@ export default async function DashboardPage() {
           ))
         )}
       </div>
-
-      {machineList.length > 0 && (
-        <div className="section-card">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Machines — today</div>
-              <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 2 }}>
-                {plantTotalToday.toLocaleString()} units across {machineList.length} machines
-              </div>
-            </div>
-            <Link href="/machines/analysis" className="view-all-link">Analysis →</Link>
-          </div>
-          {machineRows.map(({ machine, quantity, hoursLogged, eff }) => (
-            <div key={machine.id} className="order-row">
-              <div className="order-row-info">
-                <div className="order-row-title">{machine.code} · {machine.name}</div>
-                <div className="order-row-sub">{quantity.toLocaleString()} units · {hoursLogged}/24 hrs logged</div>
-              </div>
-              <div className="order-row-meta">
-                <span className="pill" style={{ color: effColor(eff) }}>{eff === null ? '—' : `${eff.toFixed(0)}% eff.`}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       <div className="section-card">
         <div className="section-header">
