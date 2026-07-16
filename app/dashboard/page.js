@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import AppShell from '@/components/AppShell';
+import DashboardClient from '@/components/DashboardClient';
 import { createClient } from '@/lib/supabase-server';
 import { statusBadgeClass, daysLeftLabel, initials } from '@/lib/orders';
 
@@ -48,6 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell>
+      <DashboardClient isEmpty={total === 0}>
       <div className="page-header">
         <div>
           <div className="page-title">Dashboard</div>
@@ -114,6 +116,7 @@ export default async function DashboardPage() {
           ))
         )}
       </div>
+      </DashboardClient>
     </AppShell>
   );
 }

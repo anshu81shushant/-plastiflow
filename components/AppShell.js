@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar';
 import InstallPrompt from './InstallPrompt';
+import FloatingActionButton from './FloatingActionButton';
 
 export default function AppShell({ children }) {
   return (
@@ -7,6 +8,7 @@ export default function AppShell({ children }) {
       <Sidebar />
       <main className="main">{children}</main>
       <InstallPrompt />
+      <FloatingActionButton />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 
@@ -30,15 +30,38 @@ function CompletionDial({ pct }) {
   );
 }
 
+// Small status indicator: idle / typing / saving / saved / error
+function SaveStatus({ status }) {
+  const map = {
+    typing: { text: 'Typing…', color: 'var(--text-muted)' },
+    saving: { text: 'Saving…', color: 'var(--blue-dot)' },
+    saved: { text: '✓ Saved', color: 'var(--green-dot)' },
+    error: { text: 'Could not save', color: 'var(--red-dot)' },
+  };
+  if (!status || !map[status]) return null;
+  return (
+    <span style={{ fontSize: 12, fontWeight: 700, color: map[status].color, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      {status === 'saving' && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ animation: 'pf-spin 0.8s linear infinite' }}>
+          <path d="M12 2a10 10 0 0 1 10 10" />
+        </svg>
+      )}
+      {map[status].text}
+      <style>{`@keyframes pf-spin { to { transform: rotate(360deg); } }`}</style>
+    </span>
+  );
+}
+
 export default function ProductionLog({ order, material, initialLogs }) {
   const router = useRouter();
   const [logs, setLogs] = useState(initialLogs);
   const [quantity, setQuantity] = useState('');
   const [logDate, setLogDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [status, setStatus] = useState(null); // null | 'typing' | 'saving' | 'saved' | 'error'
   const [expanded, setExpanded] = useState(true);
+  const debounceRef = useRef(null);
+  const savedQtyRef = useRef(''); // tracks what quantity value we already saved, to avoid duplicate saves
 
   const totalProduced = logs.reduce((sum, l) => sum + l.quantity, 0);
   const orderedQty = order.quantity || 0;
@@ -49,14 +72,12 @@ export default function ProductionLog({ order, material, initialLogs }) {
     ? { grams: order.material_grams_per_unit, name: material.name, stock: material.stock_kg }
     : null;
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const doSave = async () => {
     const qty = Number(quantity);
-    if (!qty || qty <= 0) { setError('Enter a valid quantity produced.'); return; }
-    if (!logDate) { setError('Select a date.'); return; }
+    if (!qty || qty <= 0) { setStatus(null); return; }
+    if (qty === Number(savedQtyRef.current)) { setStatus('saved'); return; } // nothing changed since last save
 
-    setSaving(true);
-    setError('');
+    setStatus('saving');
     const supabase = createClient();
 
     try {
@@ -68,7 +89,6 @@ export default function ProductionLog({ order, material, initialLogs }) {
 
       if (insertError) throw insertError;
 
-      // Auto-deduct material stock if this order has a material + grams-per-unit set
       if (materialForThisLog) {
         const consumedKg = (materialForThisLog.grams * qty) / 1000;
         const newStock = Math.max(0, materialForThisLog.stock - consumedKg);
@@ -80,15 +100,30 @@ export default function ProductionLog({ order, material, initialLogs }) {
       }
 
       setLogs((prev) => [newLog, ...prev]);
+      savedQtyRef.current = quantity;
+      setStatus('saved');
       setQuantity('');
       setNotes('');
-      setLogDate(new Date().toISOString().slice(0, 10));
       router.refresh();
+
+      // Clear the "Saved" indicator after a moment so it doesn't linger forever
+      setTimeout(() => setStatus((s) => (s === 'saved' ? null : s)), 2500);
     } catch (err) {
-      setError('Could not save production entry. Try again.');
+      setStatus('error');
     }
-    setSaving(false);
   };
+
+  const handleQuantityChange = (val) => {
+    setQuantity(val);
+    setStatus(val ? 'typing' : null);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      doSave();
+    }, 900); // saves ~0.9s after the person stops typing
+  };
+
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
   const deleteLog = async (log) => {
     if (!confirm(`Delete this entry (${log.quantity} units on ${formatDate(log.log_date)})? This won't restore deducted material stock.`)) return;
@@ -116,15 +151,20 @@ export default function ProductionLog({ order, material, initialLogs }) {
 
       {expanded && (
         <>
-          <form onSubmit={submit} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'flex-start' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
+            Type units produced — it saves automatically, no button needed.
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
             <input
               className="input"
               type="number"
               min="1"
-              placeholder="Units produced"
+              placeholder="Units produced today"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              style={{ width: 150 }}
+              onChange={(e) => handleQuantityChange(e.target.value)}
+              style={{ width: 170 }}
+              autoComplete="off"
             />
             <input
               className="input"
@@ -138,20 +178,23 @@ export default function ProductionLog({ order, material, initialLogs }) {
               placeholder="Notes (optional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              onBlur={doSave}
               style={{ flex: 1, minWidth: 160 }}
             />
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : '+ Log entry'}
-            </button>
-          </form>
+            <SaveStatus status={status} />
+          </div>
 
           {materialForThisLog && quantity && Number(quantity) > 0 && (
-            <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginBottom: 14, marginTop: -6 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginBottom: 14 }}>
               Will deduct ~{((materialForThisLog.grams * Number(quantity)) / 1000).toFixed(2)} kg of {materialForThisLog.name} from stock
             </div>
           )}
 
-          {error && <div className="error-banner" style={{ marginBottom: 14 }}>{error}</div>}
+          {status === 'error' && (
+            <div className="error-banner" style={{ marginBottom: 14 }}>
+              Could not save that entry. Check your connection — it'll retry if you edit the quantity again.
+            </div>
+          )}
 
           {logs.length === 0 ? (
             <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>

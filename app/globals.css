@@ -216,14 +216,13 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
   justify-content: center;
   gap: 3px;
   color: var(--text-muted);
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 0 2px;
 }
 
 .tabbar-link svg {
-  width: 19px;
-  height: 19px;
+  width: 21px;
+  height: 21px;
 }
 
 .tabbar-link.active {
@@ -542,94 +541,6 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 }
 
 .link-btn.danger { color: var(--red-dot); }
-.link-btn:disabled { color: var(--text-muted); cursor: default; }
-
-/* ============ MACHINES / HOURLY PRODUCTION ============ */
-
-.machine-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.machine-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.machine-code-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  background: var(--ink);
-  color: #fff;
-  font-weight: 800;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-.hourly-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  min-width: 720px;
-}
-
-.hourly-table th {
-  text-align: left;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-muted);
-  font-weight: 700;
-  padding: 6px 8px;
-  border-bottom: 1.5px solid var(--border-strong);
-}
-
-.hourly-table td {
-  padding: 5px 8px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-
-.hourly-table tr:hover td { background: var(--bg); }
-
-.hourly-input {
-  width: 72px;
-  padding: 7px 9px !important;
-  font-size: 13px !important;
-}
-
-.date-nav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-
-.mini-bar-track {
-  background: var(--gray-bg);
-  border-radius: 4px;
-  height: 8px;
-  overflow: hidden;
-  width: 100%;
-}
-
-.mini-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-}
 
 /* ============ FORMS ============ */
 
@@ -813,18 +724,41 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
 
 .google-btn:hover { background: var(--gray-bg); }
 
+/* ============ FLOATING ACTION BUTTON ============ */
+
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(var(--tabbar-h, 0px) + 20px);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(234,88,12,0.4);
+  z-index: 60;
+  transition: transform 0.12s, background 0.12s;
+}
+
+.fab:hover { background: var(--accent-hover); }
+.fab:active { transform: scale(0.94); }
+
+@media (min-width: 861px) {
+  .fab { bottom: 24px; }
+}
+
 /* ============ RESPONSIVE ============ */
 
 @media (max-width: 860px) {
-  .app-shell { flex-direction: column; }
-
   .sidebar { display: none; }
 
-  .topbar { display: flex; width: 100%; }
+  .topbar { display: flex; }
   .tabbar { display: block; }
 
   .main {
-    width: 100%;
     padding: 18px 16px calc(var(--tabbar-h) + 24px);
   }
 
