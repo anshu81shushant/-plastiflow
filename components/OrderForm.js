@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { STATUSES } from '@/lib/orders';
-import VoiceOrderFill from './VoiceOrderFill';
 import ImageLightbox from './ImageLightbox';
 
 export default function OrderForm({ initial, materials: initialMaterials = [] }) {
@@ -39,26 +38,6 @@ export default function OrderForm({ initial, materials: initialMaterials = [] })
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const handleVoiceFilled = (fields) => {
-    setForm((f) => {
-      const next = { ...f };
-      if (fields.customer_name) next.customer_name = fields.customer_name;
-      if (fields.item_name) next.item_name = fields.item_name;
-      if (fields.description) next.description = fields.description;
-      if (fields.quantity) next.quantity = fields.quantity;
-      if (fields.due_date) next.due_date = fields.due_date;
-      if (fields.days_to_complete) next.days_to_complete = fields.days_to_complete;
-      if (fields.price) next.price = fields.price;
-      if (fields.notes) next.notes = fields.notes;
-      if (fields.material_grams_per_unit) next.material_grams_per_unit = fields.material_grams_per_unit;
-      if (fields.material_name) {
-        const match = materials.find((m) => m.name.toLowerCase() === fields.material_name.toLowerCase());
-        if (match) next.material_id = match.id;
-      }
-      return next;
-    });
-  };
 
   const createMaterial = async () => {
     if (!newMaterialName.trim()) { setMaterialError('Enter a material name.'); return; }
@@ -166,7 +145,6 @@ export default function OrderForm({ initial, materials: initialMaterials = [] })
 
   return (
     <>
-    <VoiceOrderFill onFilled={handleVoiceFilled} materialNames={materials.map((m) => m.name)} />
     <form className="form-card" onSubmit={submit}>
       <div className="form-section-title">Order Information</div>
       <div className="form-grid">
