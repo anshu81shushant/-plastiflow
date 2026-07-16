@@ -3,9 +3,12 @@ import OrderForm from '@/components/OrderForm';
 import { createClient } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditOrderPage({ params }) {
   const supabase = createClient();
   const { data: order } = await supabase.from('orders').select('*').eq('id', params.id).single();
+  const { data: materials } = await supabase.from('raw_materials').select('*').order('name');
 
   if (!order) notFound();
 
@@ -17,7 +20,7 @@ export default async function EditOrderPage({ params }) {
           <div className="page-subtitle">Update details for {order.item_name}</div>
         </div>
       </div>
-      <OrderForm initial={order} />
+      <OrderForm initial={order} materials={materials || []} />
     </AppShell>
   );
 }
