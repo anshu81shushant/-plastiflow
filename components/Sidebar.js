@@ -45,6 +45,18 @@ const links = [
     ),
   },
   {
+    href: '/machines',
+    label: 'Machines',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="7" width="13" height="12" rx="1.5" />
+        <path d="M16 11h3.2a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1H16" />
+        <circle cx="7.5" cy="19" r="1.4" /><circle cx="12.5" cy="19" r="1.4" />
+        <path d="M7 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      </svg>
+    ),
+  },
+  {
     href: '/materials',
     label: 'Materials',
     icon: (
@@ -74,7 +86,11 @@ export default function Sidebar() {
     router.refresh();
   };
 
-  const isActive = (href) => (href === '/orders' ? pathname === '/orders' : pathname === href);
+  const isActive = (href) => {
+    if (href === '/orders') return pathname === '/orders';
+    if (href === '/machines') return pathname === '/machines' || pathname.startsWith('/machines/');
+    return pathname === href;
+  };
 
   return (
     <>

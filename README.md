@@ -119,7 +119,12 @@ One extra step for Google login to work on the live URL: go back to Google Cloud
 - **Click any item photo** (in Add/Edit Order preview or in the All Orders list) to view it full-screen. Press Escape or click outside to close.
 - **Raw materials & reorder alerts**: run `supabase-migration-2-materials.sql` in Supabase's SQL editor (after the main `supabase-setup.sql`) to enable the Materials page, stock tracking, and reorder warnings.
 - **Daily production logging**: run `supabase-migration-3-production.sql` in Supabase's SQL editor (after the other two migrations) to enable production tracking. On each order's Edit page, log units produced each day — it shows a completion dial, and if the order has a material + grams-per-unit set, it automatically deducts that material's stock. Deletions don't restore deducted stock automatically, so double-check before removing an entry.
-- **Redesigned UI**: the whole app now uses a mobile-first industrial design — dark graphite navigation, safety-orange accent, a bottom tab bar on phones (sidebar returns on desktop). Run all three SQL migrations in order for every feature to work correctly.
+- **Redesigned UI**: the whole app now uses a mobile-first industrial design — dark graphite navigation, safety-orange accent, a bottom tab bar on phones (sidebar returns on desktop). Run all migrations in order for every feature to work correctly.
+- **Machines & hourly production tracking**: run `supabase-migration-4-machines.sql` in Supabase's SQL editor (after the other migrations) to enable the Machines section. It seeds 7 machines (M1–M7, editable) and adds a **Machines** tab:
+  - Tap a machine to open its day view — one row per hour (00:00–24:00), where you enter units produced, rejects, downtime (minutes), operator, and notes. A live bar chart and stat strip (total, rejects, downtime, efficiency vs target) update as you fill it in. Use the date arrows or date picker to log a different day, or go back and fill in earlier hours.
+  - Set each machine's **target capacity (units/hour)** when adding/editing it — that's what efficiency % is measured against.
+  - **Production analysis** (`Machines → View analysis`): pick a date range (or use Today/7 days/30 days) to see total output, rejects, downtime, and average efficiency across all machines, a top-performer / needs-attention callout, a daily output trend, an output-by-machine comparison, an output-by-hour-of-day pattern (useful for spotting slow shifts/hours), and a full sortable breakdown table.
+  - The Dashboard also shows a compact "Machines — today" snapshot per machine.
 
 ## Installing as a mobile app (PWA)
 
