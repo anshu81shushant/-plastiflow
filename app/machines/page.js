@@ -21,7 +21,8 @@ export default async function MachinesPage() {
 
   const todayTotalByMachine = {};
   logs.forEach((l) => {
-    todayTotalByMachine[l.machine_id] = (todayTotalByMachine[l.machine_id] || 0) + l.units_produced;
+    const units = Number(l.units_produced) || 0;
+    todayTotalByMachine[l.machine_id] = (todayTotalByMachine[l.machine_id] || 0) + units;
   });
 
   const downMachineIds = new Set(downtime.map((d) => d.machine_id));

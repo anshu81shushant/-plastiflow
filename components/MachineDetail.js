@@ -222,7 +222,7 @@ export default function MachineDetail({ machine, initialHourlyLogs, initialDownt
             {hourlyLogs.slice(0, 12).map((log) => (
               <div key={log.id} className="prod-log-row">
                 <div>
-                  <span style={{ fontWeight: 700, fontSize: 13.5 }}>{log.units_produced.toLocaleString()} units</span>
+                  <span style={{ fontWeight: 700, fontSize: 13.5 }}>{(log.units_produced || 0).toLocaleString()} units</span>
                   <span style={{ color: 'var(--text-secondary)', fontSize: 12.5, marginLeft: 8 }}>
                     {new Date(log.log_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · {formatHourSlot(log.hour_slot)}
                   </span>
