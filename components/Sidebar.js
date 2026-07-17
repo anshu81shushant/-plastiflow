@@ -27,11 +27,11 @@ const links = [
     ),
   },
   {
-    href: '/orders/new',
-    label: 'Add',
+    href: '/machines',
+    label: 'Machines',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" />
+        <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M7 8h10M7 12h6M7 16h4" />
       </svg>
     ),
   },
@@ -89,7 +89,7 @@ export default function Sidebar() {
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={`sidebar-link ${isActive(link.href) ? 'active' : ''}`}>
               {link.icon}
-              {link.label === 'Add' ? 'Add Order' : link.label === 'Orders' ? 'All Orders' : link.label}
+              {link.label === 'Orders' ? 'All Orders' : link.label}
             </Link>
           ))}
         </nav>

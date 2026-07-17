@@ -123,6 +123,7 @@ One extra step for Google login to work on the live URL: go back to Google Cloud
 - **Auto-save on production log**: type units produced and it saves automatically about a second after you stop typing — no save button. A small status label ("Typing…", "Saving…", "✓ Saved") shows what's happening.
 - **First-time setup guide**: when the dashboard is completely empty (no orders yet), a "Quick start" card walks a new user through adding their first material and first order. It only shows once — dismissing or completing it hides it for good (stored per-device, not per-account, so it'll reappear if someone opens the app on a new phone).
 - **Floating add button**: on Dashboard, All Orders, Remaining, and Materials, a round + button stays fixed in the corner while scrolling, so adding something is always one tap away — especially useful on long lists on mobile.
+- **Machines (per-hour production + downtime)**: run `supabase-migration-4-machines.sql` in Supabase's SQL editor to enable this. Add your machines (e.g. "Machine 1" through "Machine 7"), then log hourly output per machine — units produced, which hour, optionally linked to an order. Log downtime with a reason (mold change, breakdown, no material, etc.) and mark it resolved when the machine's running again. Each machine's page shows a 7-day output chart and total downtime for the week. Reachable from the sidebar (desktop) or bottom tab bar (mobile, replacing the old "Add" tab since the floating + button already covers that).
 
 ## Installing as a mobile app (PWA)
 

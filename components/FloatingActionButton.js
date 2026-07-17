@@ -10,6 +10,7 @@ const FAB_CONFIG = {
   '/orders': { href: '/orders/new', label: 'New order' },
   '/remaining': { href: '/orders/new', label: 'New order' },
   '/materials': { href: '/materials/new', label: 'Add material' },
+  '/machines': { href: '/machines/new', label: 'Add machine' },
 };
 
 export default function FloatingActionButton() {
