@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { parsePurchaseOrder, parseBill } from '@/lib/documentParser';
+import { pdfFirstPageToImage } from '@/lib/pdfToImage';
 
 export default function DocumentScanner({ docType, materialNames = [], onExtracted }) {
   const [preview, setPreview] = useState(null);
@@ -19,26 +20,37 @@ export default function DocumentScanner({ docType, materialNames = [], onExtract
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.type === 'application/pdf') {
-      setError('PDF scanning needs a photo instead for now — try taking a photo of the document, or a screenshot of the PDF page.');
-      return;
-    }
-
     if (file.size > 15 * 1024 * 1024) {
-      setError('File too large — pick an image under 15MB.');
+      setError('File too large — pick a file under 15MB.');
       return;
     }
 
     setError('');
     setResult(null);
     setRawText('');
-    setPreview(URL.createObjectURL(file));
     setScanning(true);
     setProgress(0);
 
+    let imageSource = file;
+
+    if (file.type === 'application/pdf') {
+      try {
+        setProgress(0);
+        const imageBlob = await pdfFirstPageToImage(file);
+        imageSource = imageBlob;
+        setPreview(URL.createObjectURL(imageBlob));
+      } catch (err) {
+        setError('Could not read that PDF. Try a photo of the document instead, or a screenshot of the PDF page.');
+        setScanning(false);
+        return;
+      }
+    } else {
+      setPreview(URL.createObjectURL(file));
+    }
+
     try {
       const Tesseract = (await import('tesseract.js')).default;
-      const { data } = await Tesseract.recognize(file, 'eng', {
+      const { data } = await Tesseract.recognize(imageSource, 'eng', {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
@@ -95,7 +107,7 @@ export default function DocumentScanner({ docType, materialNames = [], onExtract
       </div>
 
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, background: 'var(--gray-bg)', padding: '8px 12px', borderRadius: 8 }}>
-        Works best on clear, printed documents — good lighting, straight angle, no glare. Handwritten or blurry documents extract less reliably, so always double-check before saving.
+        Works best on clear, printed documents — good lighting, straight angle, no glare. Handwritten or blurry documents extract less reliably, so always double-check before saving. For multi-page PDFs, only the first page is read.
       </div>
 
       {!preview ? (
@@ -103,9 +115,9 @@ export default function DocumentScanner({ docType, materialNames = [], onExtract
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 10px' }}>
             <path d="M12 16V4M6 10l6-6 6 6M4 20h16" />
           </svg>
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>Click to upload {isPO ? 'PO' : 'bill'} photo</div>
-          <div style={{ color: 'var(--text-muted)' }}>JPG or PNG up to 15MB</div>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Click to upload {isPO ? 'PO' : 'bill'} photo or PDF</div>
+          <div style={{ color: 'var(--text-muted)' }}>JPG, PNG, or PDF up to 15MB</div>
+          <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" onChange={handleFile} style={{ display: 'none' }} />
         </label>
       ) : (
         <div>
