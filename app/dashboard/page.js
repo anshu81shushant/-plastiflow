@@ -32,11 +32,11 @@ export default async function DashboardPage() {
     .slice(0, 5);
 
   const stats = [
-    { label: 'Total Orders', value: total, color: 'var(--gray-bg)', iconColor: 'var(--text-secondary)', icon: 'box' },
-    { label: 'Pending', value: pending, color: 'var(--amber-bg)', iconColor: 'var(--amber-text)', icon: 'clock' },
-    { label: 'In Progress', value: inProgress, color: 'var(--accent-light)', iconColor: 'var(--accent-text)', icon: 'trend' },
-    { label: 'Completed', value: completed, color: 'var(--green-bg)', iconColor: 'var(--green-text)', icon: 'check' },
-    { label: 'Overdue', value: overdue, color: 'var(--red-bg)', iconColor: 'var(--red-text)', icon: 'alert' },
+    { label: 'Total Orders', value: total, color: 'var(--gray-bg)', iconColor: 'var(--text-secondary)', icon: 'box', accent: 'var(--border-strong)' },
+    { label: 'Pending', value: pending, color: 'var(--amber-bg)', iconColor: 'var(--amber-text)', icon: 'clock', accent: 'var(--amber-dot)' },
+    { label: 'In Progress', value: inProgress, color: 'var(--accent-light)', iconColor: 'var(--accent-text)', icon: 'trend', accent: 'var(--accent)', live: inProgress > 0 },
+    { label: 'Completed', value: completed, color: 'var(--green-bg)', iconColor: 'var(--green-text)', icon: 'check', accent: 'var(--green-dot)' },
+    { label: 'Overdue', value: overdue, color: 'var(--red-bg)', iconColor: 'var(--red-text)', icon: 'alert', accent: 'var(--red-dot)' },
   ];
 
   const icons = {
@@ -60,13 +60,13 @@ export default async function DashboardPage() {
 
       <div className="stat-grid">
         {stats.map((s) => (
-          <div key={s.label} className="stat-card">
+          <div key={s.label} className="stat-card" style={{ '--stat-accent': s.accent }}>
             <div className="stat-icon" style={{ background: s.color, color: s.iconColor }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 {icons[s.icon]}
               </svg>
             </div>
-            <div className="stat-value">{s.value}</div>
+            <div className="stat-value">{s.value}{s.live && <span className="live-dot" title="Currently running" />}</div>
             <div className="stat-label">{s.label}</div>
           </div>
         ))}

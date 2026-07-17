@@ -62,7 +62,12 @@ This creates:
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
    ```
-6. Save the file.
+6. To enable the new "Ask PlastiFlow" AI chat assistant (see below), also add:
+   ```
+   ANTHROPIC_API_KEY=your-anthropic-api-key-here
+   ```
+   Get a key at https://console.anthropic.com/settings/keys (Anthropic Console → Get API keys). Without this, the rest of the app works fine — you'll just see a friendly error if you tap the chat bubble.
+7. Save the file.
 
 ## Part 5 — Run it
 
@@ -106,7 +111,7 @@ supabase-setup.sql  Run this once in Supabase's SQL editor
 The easiest option is **Vercel** (made by the creators of Next.js, free tier is enough):
 1. Push this project to a GitHub repo.
 2. Go to https://vercel.com, sign up, click **Add New Project**, import your repo.
-3. Add the same two environment variables from `.env.local` in Vercel's project settings.
+3. Add the same environment variables from `.env.local` in Vercel's project settings — including `ANTHROPIC_API_KEY` if you want the AI chat assistant to work on the live site.
 4. Deploy. You'll get a live URL to share with your team.
 
 One extra step for Google login to work on the live URL: go back to Google Cloud Console → your OAuth client → add your Vercel URL's Supabase callback as an authorized redirect URI (same one as before — it doesn't change per-domain since Supabase handles the callback).
@@ -120,6 +125,8 @@ One extra step for Google login to work on the live URL: go back to Google Cloud
 - **Raw materials & reorder alerts**: run `supabase-migration-2-materials.sql` in Supabase's SQL editor (after the main `supabase-setup.sql`) to enable the Materials page, stock tracking, and reorder warnings.
 - **Daily production logging**: run `supabase-migration-3-production.sql` in Supabase's SQL editor (after the other two migrations) to enable production tracking. On each order's Edit page, log units produced each day — it shows a completion dial, and if the order has a material + grams-per-unit set, it automatically deducts that material's stock. Deletions don't restore deducted stock automatically, so double-check before removing an entry.
 - **Redesigned UI**: the whole app now uses a mobile-first industrial design — dark graphite navigation, safety-orange accent, a bottom tab bar on phones (sidebar returns on desktop). Run all three SQL migrations in order for every feature to work correctly.
+- **Visual refresh (latest pass)**: new type system — Space Grotesk for headings, Inter for body text, JetBrains Mono for every number (stat counts, quantities, batch figures) so data reads like a machine readout. Warm "raw-material paper" background instead of plain white, a two-tone molten-amber / quality-teal accent pair, a heater-coil gradient line on the nav, subtle rise-in animation on dashboard stat cards, and a pulsing live-dot on the "In Progress" stat when something's actively running. All animation respects `prefers-reduced-motion`.
+- **Ask PlastiFlow (AI chat assistant)**: a chat bubble in the bottom-left corner (next to, not overlapping, the floating + button) on every signed-in page. Ask it things like "which orders are overdue?", "any materials running low?", or "which machines are down?" — it reads a live snapshot of your orders, materials, and machines and answers in plain language. It's read-only for now (can't create or edit anything yet) and needs `ANTHROPIC_API_KEY` set (see setup Part 4, step 6) to work — without it, it shows a clear message telling you what's missing instead of failing silently.
 - **Auto-save on production log**: type units produced and it saves automatically about a second after you stop typing — no save button. A small status label ("Typing…", "Saving…", "✓ Saved") shows what's happening.
 - **First-time setup guide**: when the dashboard is completely empty (no orders yet), a "Quick start" card walks a new user through adding their first material and first order. It only shows once — dismissing or completing it hides it for good (stored per-device, not per-account, so it'll reappear if someone opens the app on a new phone).
 - **Floating add button**: on Dashboard, All Orders, Remaining, and Materials, a round + button stays fixed in the corner while scrolling, so adding something is always one tap away — especially useful on long lists on mobile.
