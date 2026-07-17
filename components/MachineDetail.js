@@ -71,7 +71,8 @@ export default function MachineDetail({ machine, initialHourlyLogs, initialDownt
       setUnits('');
       router.refresh();
     } catch (err) {
-      setError('Could not save entry. Try again.');
+      setError(`Could not save entry: ${err?.message || 'unknown error'}. Check the browser console for details.`);
+      console.error('machine_hourly_logs insert error:', err);
     }
     setSaving(false);
   };

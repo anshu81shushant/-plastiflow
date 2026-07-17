@@ -27,6 +27,8 @@ export default function OrderForm({ initial, materials: initialMaterials = [] })
     days_to_complete: initial?.days_to_complete || 7,
     due_date: initial?.due_date || '',
     price: initial?.price || '',
+    gst_rate: initial?.gst_rate ?? 18,
+    hsn_code: initial?.hsn_code || '',
     notes: initial?.notes || '',
     photo_url: initial?.photo_url || null,
     material_id: initial?.material_id || '',
@@ -121,6 +123,8 @@ export default function OrderForm({ initial, materials: initialMaterials = [] })
         days_to_complete: Number(form.days_to_complete) || null,
         due_date: form.due_date,
         price: form.price ? Number(form.price) : null,
+        gst_rate: form.gst_rate ? Number(form.gst_rate) : 18,
+        hsn_code: form.hsn_code.trim(),
         notes: form.notes.trim(),
         photo_url: photoUrl,
         material_id: form.material_id || null,
@@ -185,6 +189,15 @@ export default function OrderForm({ initial, materials: initialMaterials = [] })
         <div className="form-field">
           <label className="form-label">Price</label>
           <input className="input" type="number" min="0" value={form.price} onChange={(e) => set('price', e.target.value)} placeholder="₹ amount" />
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">GST rate (%)</label>
+          <input className="input" type="number" min="0" max="28" step="0.1" value={form.gst_rate} onChange={(e) => set('gst_rate', e.target.value)} placeholder="e.g., 18" />
+        </div>
+        <div className="form-field">
+          <label className="form-label">HSN code</label>
+          <input className="input" value={form.hsn_code} onChange={(e) => set('hsn_code', e.target.value)} placeholder="e.g., 3924" />
         </div>
 
         <div className="form-field full">

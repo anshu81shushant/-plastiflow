@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { STATUSES, statusBadgeClass, daysLeftLabel, formatDate, initials } from '@/lib/orders';
+import { generateAndSaveInvoice } from '@/lib/generateInvoice';
 import ImageLightbox from './ImageLightbox';
 
 export default function OrdersList({ initialOrders }) {
@@ -14,6 +15,7 @@ export default function OrdersList({ initialOrders }) {
   const [sortBy, setSortBy] = useState('By Deadline');
   const [error, setError] = useState('');
   const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [generatingInvoiceFor, setGeneratingInvoiceFor] = useState(null);
   const router = useRouter();
 
   const filtered = useMemo(() => {
@@ -45,6 +47,7 @@ export default function OrdersList({ initialOrders }) {
   };
 
   const markDone = async (id) => {
+    const order = orders.find((o) => o.id === id);
     const supabase = createClient();
     const { error } = await supabase.from('orders').update({ status: 'Completed' }).eq('id', id);
     if (error) {
@@ -52,6 +55,13 @@ export default function OrdersList({ initialOrders }) {
       return;
     }
     setOrders(orders.map((o) => (o.id === id ? { ...o, status: 'Completed' } : o)));
+
+    setGeneratingInvoiceFor(id);
+    const result = await generateAndSaveInvoice({ ...order, status: 'Completed' });
+    setGeneratingInvoiceFor(null);
+    if (!result.success) {
+      setError(result.error || 'Order marked complete, but the invoice could not be generated.');
+    }
   };
 
   return (
