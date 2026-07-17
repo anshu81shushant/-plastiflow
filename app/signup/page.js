@@ -5,33 +5,57 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
-  const handleSignIn = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
-      if (signInError) {
-        setError(signInError.message || 'Could not sign in. Check your email and password.');
+      if (signUpError) {
+        setError(signUpError.message || 'Could not create account. Please try again.');
         setLoading(false);
         return;
       }
 
-      router.push('/dashboard');
+      setSuccess('Account created! Check your email to confirm your account.');
+      setTimeout(() => {
+        router.push('/login');
+      }, 3000);
     } catch (err) {
       setError('An error occurred. Please try again.');
       setLoading(false);
@@ -47,10 +71,10 @@ export default function LoginPage() {
             <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
           </svg>
         </div>
-        <div className="login-title">Sign in to PlastiFlow</div>
-        <div className="login-sub">Track plastic moulding orders, deadlines and progress in one place.</div>
+        <div className="login-title">Create PlastiFlow Account</div>
+        <div className="login-sub">Join now and start tracking your plastic moulding operations.</div>
 
-        <form onSubmit={handleSignIn} className="login-form">
+        <form onSubmit={handleSignUp} className="login-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">Email</label>
             <input
@@ -99,26 +123,59 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="form-group">
+            <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+            <div className="password-input-wrapper">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                disabled={loading}
+                className="form-input"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="password-toggle"
+                disabled={loading}
+              >
+                {showConfirmPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
           <button
             type="submit"
-            disabled={loading || !email || !password}
+            disabled={loading || !email || !password || !confirmPassword}
             className="login-btn"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 
         <div className="login-footer">
-          <Link href="/forgot-password" className="forgot-link">
-            Forgot password?
-          </Link>
+          <span>Already have an account?</span>
           <span className="separator">•</span>
-          <Link href="/signup" className="signup-link">
-            Create account
+          <Link href="/login" className="signup-link">
+            Sign in
           </Link>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
+        {success && <div className="success-banner">{success}</div>}
       </div>
     </div>
   );
