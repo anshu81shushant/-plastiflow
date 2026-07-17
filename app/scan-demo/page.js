@@ -34,7 +34,7 @@ export default function ScanDemoPage() {
       <DocumentScanner docType={mode} materialNames={['HDPE Granules', 'Masterbatch Blue', 'PP Granules']} />
 
       <div style={{ marginTop: 16, fontSize: 12.5, color: 'var(--text-muted)' }}>
-        This is a demo page — once confirmed working, the same scanner gets built into the real Add Order and Add Material forms so extracted fields drop straight into the form instead of just showing here.
+        This is a demo page — once confirmed working, the same scanner gets built into the real Add Order and Add Material forms so extracted fields drop straight into the form instead of just showing here. This uses free, in-browser text recognition (no API key, no cost) — accuracy is best on clean, printed documents.
       </div>
     </AppShell>
   );
