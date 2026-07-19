@@ -30,12 +30,13 @@ export async function middleware(request) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const isAuthPage = request.nextUrl.pathname === '/login';
+  const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(request.nextUrl.pathname);
+  const isResetPasswordPage = request.nextUrl.pathname === '/reset-password';
   const isAuthCallback = request.nextUrl.pathname.startsWith('/auth');
   const isPublicAsset = request.nextUrl.pathname.startsWith('/_next') ||
     request.nextUrl.pathname.startsWith('/favicon');
 
-  if (!user && !isAuthPage && !isAuthCallback && !isPublicAsset) {
+  if (!user && !isAuthPage && !isResetPasswordPage && !isAuthCallback && !isPublicAsset) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -47,5 +48,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

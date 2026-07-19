@@ -4,8 +4,8 @@
   "description": "Track plastic moulding orders, deadlines, and materials",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#FAFAF8",
-  "theme_color": "#1C2128",
+  "background_color": "#F5F3EE",
+  "theme_color": "#15181C",
   "orientation": "portrait-primary",
   "icons": [
     {

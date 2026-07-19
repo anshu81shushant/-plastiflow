@@ -1,26 +1,44 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const signInWithGoogle = async () => {
+  const signIn = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password) { setError('Enter your email and password.'); return; }
+
     setLoading(true);
     setError('');
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
     });
-    if (error) {
-      setError('Could not sign in. Try again.');
+
+    if (signInError) {
+      setError(
+        signInError.message.includes('Invalid login credentials')
+          ? 'Incorrect email or password.'
+          : signInError.message.includes('Email not confirmed')
+          ? 'Please confirm your email first — check your inbox for a confirmation link.'
+          : 'Could not sign in. Try again.'
+      );
       setLoading(false);
+      return;
     }
+
+    router.push('/dashboard');
+    router.refresh();
   };
 
   return (
@@ -35,17 +53,46 @@ export default function LoginPage() {
         <div className="login-title">Sign in to PlastiFlow</div>
         <div className="login-sub">Track plastic moulding orders, deadlines and progress in one place.</div>
 
-        <button className="google-btn" onClick={signInWithGoogle} disabled={loading}>
-          <svg width="18" height="18" viewBox="0 0 48 48">
-            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z" />
-            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.4 0-13.8 4.1-17.1 10.1z" />
-            <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.1-5.1l-6.5-5.5C29.6 35.5 26.9 36.5 24 36.5c-5.2 0-9.7-3.4-11.3-8.1l-6.5 5c3.3 6.4 9.9 10.6 17.4 10.6z" />
-            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.5 5.5C40.9 36.5 44 30.8 44 24c0-1.3-.1-2.7-.4-3.5z" />
-          </svg>
-          {loading ? 'Signing in...' : 'Continue with Google'}
-        </button>
+        <form onSubmit={signIn} style={{ textAlign: 'left', display: 'grid', gap: 14 }}>
+          <div className="form-field">
+            <label className="form-label">Email</label>
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              autoComplete="email"
+            />
+          </div>
+          <div className="form-field">
+            <label className="form-label">Password</label>
+            <input
+              className="input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
+          </div>
 
-        {error && <div className="error-banner">{error}</div>}
+          <div style={{ textAlign: 'right', marginTop: -6 }}>
+            <Link href="/forgot-password" style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 700 }}>
+              Forgot password?
+            </Link>
+          </div>
+
+          {error && <div className="error-banner">{error}</div>}
+
+          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', padding: '12px 0', justifyContent: 'center' }}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: 20, fontSize: 13, color: 'var(--text-secondary)' }}>
+          Don't have an account? <Link href="/signup" style={{ color: 'var(--accent)', fontWeight: 700 }}>Sign up</Link>
+        </div>
       </div>
     </div>
   );

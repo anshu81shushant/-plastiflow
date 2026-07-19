@@ -106,7 +106,8 @@ export default function MachineDetail({ machine, initialHourlyLogs, initialDownt
       setDowntimeReason('');
       setShowDowntimeForm(false);
     } catch (err) {
-      setError('Could not log downtime. Try again.');
+      setError(`Could not log downtime: ${err?.message || 'unknown error'}`);
+      console.error('machine_downtime_logs insert error:', err);
     }
     setSavingDowntime(false);
   };
@@ -117,7 +118,7 @@ export default function MachineDetail({ machine, initialHourlyLogs, initialDownt
       .from('machine_downtime_logs')
       .update({ ended_at: new Date().toISOString() })
       .eq('id', log.id);
-    if (updateError) { alert('Could not end downtime. Try again.'); return; }
+    if (updateError) { alert(`Could not end downtime: ${updateError.message}`); return; }
 
     setDowntimeLogs((prev) => prev.map((d) => (d.id === log.id ? { ...d, ended_at: new Date().toISOString() } : d)));
     await changeStatus('Running');

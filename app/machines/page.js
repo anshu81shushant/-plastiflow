@@ -58,6 +58,7 @@ export default async function MachinesPage() {
                 <div className="order-card-info">
                   <div className="order-card-title-row">
                     <span className="order-card-title">{m.name}</span>
+                    {!isDown && m.status === 'Running' && <span className="status-live" aria-hidden="true" />}
                     <span className={machineStatusBadgeClass(isDown ? 'Down' : m.status)}>{isDown ? 'Down' : m.status}</span>
                   </div>
                   <div className="order-card-sub">

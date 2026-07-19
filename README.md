@@ -33,20 +33,19 @@ This creates:
 - Row-level security so only signed-in users can read/write orders
 - A public storage bucket called `order-photos` for item images
 
-## Part 3 — Enable Google sign-in
+## Part 3 — Set up email/password sign-in
+
+PlastiFlow now uses email/password login instead of Google — this needs a couple of settings in Supabase so account creation and password resets actually work.
 
 1. In Supabase, go to **Authentication** → **Providers** in the left sidebar.
-2. Find **Google** in the list and click it to expand.
-3. Toggle **Enable sign in with Google** on.
-4. You now need a Google Client ID and Secret. Keep this tab open and open a new tab:
-   - Go to https://console.cloud.google.com/apis/credentials
-   - Create a new project (top left dropdown → New Project) if you don't have one, name it `PlastiFlow`.
-   - Click **Create Credentials** → **OAuth client ID**.
-   - If prompted, configure the **OAuth consent screen** first: choose **External**, fill in app name (`PlastiFlow`), your email for support and developer contact, save through the steps (you can skip scopes/test users, just click through).
-   - Back on **Create OAuth client ID**: Application type = **Web application**. Name it anything.
-   - Under **Authorized redirect URIs**, add the callback URL shown in your Supabase Google provider settings (it looks like `https://xxxxx.supabase.co/auth/v1/callback`) — copy it exactly from Supabase.
-   - Click **Create**. Copy the **Client ID** and **Client Secret** shown.
-5. Back in Supabase's Google provider settings, paste the **Client ID** and **Client Secret**, then click **Save**.
+2. Find **Email** in the list — it's enabled by default, but click it to check these settings:
+   - **Confirm email**: leave this **ON** if you want new users to verify their email before logging in (recommended). Turn it **OFF** if you want people to start using the app immediately after signing up, skipping email verification.
+3. Go to **Authentication** → **URL Configuration**:
+   - Set **Site URL** to your live app URL (e.g. `https://your-app.vercel.app`) — this is what password reset links point to.
+   - Under **Redirect URLs**, add both `https://your-app.vercel.app/auth/callback` and `https://your-app.vercel.app/reset-password`. While testing locally, also add `http://localhost:3000/auth/callback` and `http://localhost:3000/reset-password`.
+4. That's it — no external OAuth setup needed. Supabase sends confirmation and password-reset emails automatically using its built-in email service (fine for testing and small-scale use; for higher volume later, Supabase lets you connect a custom SMTP provider under **Project Settings → Auth**).
+
+**If you previously had Google sign-in enabled** and want to fully remove it, go to Authentication → Providers → Google and toggle it off — existing Google-linked accounts will need to sign up fresh with email/password.
 
 ## Part 4 — Set up the project in VS Code
 
@@ -120,7 +119,7 @@ One extra step for Google login to work on the live URL: go back to Google Cloud
 - **Raw materials & reorder alerts**: run `supabase-migration-2-materials.sql` in Supabase's SQL editor (after the main `supabase-setup.sql`) to enable the Materials page, stock tracking, and reorder warnings.
 - **Daily production logging**: run `supabase-migration-3-production.sql` in Supabase's SQL editor (after the other two migrations) to enable production tracking. On each order's Edit page, log units produced each day — it shows a completion dial, and if the order has a material + grams-per-unit set, it automatically deducts that material's stock. Deletions don't restore deducted stock automatically, so double-check before removing an entry.
 - **Redesigned UI**: the whole app now uses a mobile-first industrial design — dark graphite navigation, safety-orange accent, a bottom tab bar on phones (sidebar returns on desktop). Run all three SQL migrations in order for every feature to work correctly.
-- **Visual refresh (latest pass)**: new type system — Space Grotesk for headings, Inter for body text, JetBrains Mono for every number (stat counts, quantities, batch figures) so data reads like a machine readout. Warm "raw-material paper" background instead of plain white, a two-tone molten-amber / quality-teal accent pair, a heater-coil gradient line on the nav, subtle rise-in animation on dashboard stat cards, and a pulsing live-dot on the "In Progress" stat when something's actively running. All animation respects `prefers-reduced-motion`.
+- **Design refresh — "control panel" theme**: deepened the color palette (warmer off-white, near-black graphite, molten-orange accent, plus a new teal used for "live/running" states), switched all numeric readouts (stats, quantities, pills) to a monospace font for a digital-gauge feel, and added tick-mark styling on stat cards plus a pulsing "live" indicator on running machines. The app icon is now a gauge/dial motif to match. All tap targets meet the 44px minimum on mobile.
 - **Auto-save on production log**: type units produced and it saves automatically about a second after you stop typing — no save button. A small status label ("Typing…", "Saving…", "✓ Saved") shows what's happening.
 - **First-time setup guide**: when the dashboard is completely empty (no orders yet), a "Quick start" card walks a new user through adding their first material and first order. It only shows once — dismissing or completing it hides it for good (stored per-device, not per-account, so it'll reappear if someone opens the app on a new phone).
 - **Floating add button**: on Dashboard, All Orders, Remaining, and Materials, a round + button stays fixed in the corner while scrolling, so adding something is always one tap away — especially useful on long lists on mobile.
