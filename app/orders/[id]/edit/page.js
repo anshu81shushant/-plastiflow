@@ -1,6 +1,7 @@
 import AppShell from '@/components/AppShell';
 import OrderForm from '@/components/OrderForm';
 import ProductionLog from '@/components/ProductionLog';
+import DownloadJobSheetButton from '@/components/DownloadJobSheetButton';
 import { createClient } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 
@@ -27,6 +28,7 @@ export default async function EditOrderPage({ params }) {
           <div className="page-title">Edit Order</div>
           <div className="page-subtitle">Update details for {order.item_name}</div>
         </div>
+        <DownloadJobSheetButton order={order} productionLogs={logs || []} />
       </div>
       <OrderForm initial={order} materials={materials || []} />
       <div style={{ height: 20 }} />

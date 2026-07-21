@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { STATUSES, statusBadgeClass, daysLeftLabel, formatDate, initials } from '@/lib/orders';
 import { generateAndSaveInvoice } from '@/lib/generateInvoice';
+import { generateOrdersReportPDF } from '@/lib/orderPdf';
 import ImageLightbox from './ImageLightbox';
 
 export default function OrdersList({ initialOrders }) {
@@ -16,6 +17,7 @@ export default function OrdersList({ initialOrders }) {
   const [error, setError] = useState('');
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [generatingInvoiceFor, setGeneratingInvoiceFor] = useState(null);
+  const [downloadingReport, setDownloadingReport] = useState(false);
   const router = useRouter();
 
   const filtered = useMemo(() => {
@@ -46,6 +48,19 @@ export default function OrdersList({ initialOrders }) {
     setOrders(orders.filter((o) => o.id !== id));
   };
 
+  const downloadReport = async () => {
+    setDownloadingReport(true);
+    try {
+      const supabase = createClient();
+      const { data: company } = await supabase.from('company_settings').select('*').limit(1).maybeSingle();
+      const doc = await generateOrdersReportPDF({ company, orders: filtered });
+      doc.save(`orders-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      setError('Could not generate the report. Try again.');
+    }
+    setDownloadingReport(false);
+  };
+
   const markDone = async (id) => {
     const order = orders.find((o) => o.id === id);
     const supabase = createClient();
@@ -71,7 +86,12 @@ export default function OrdersList({ initialOrders }) {
           <div className="page-title">All Orders</div>
           <div className="page-subtitle">{orders.length} total orders</div>
         </div>
-        <Link href="/orders/new" className="btn btn-primary">+ New Order</Link>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-secondary" onClick={downloadReport} disabled={downloadingReport}>
+            {downloadingReport ? 'Generating...' : '📄 Download report'}
+          </button>
+          <Link href="/orders/new" className="btn btn-primary">+ New Order</Link>
+        </div>
       </div>
 
       <div className="toolbar">
